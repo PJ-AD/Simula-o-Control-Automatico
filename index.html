@@ -18,7 +18,8 @@ h1{font-size:18px;margin:0 0 2px}.sub{color:var(--mut);font-size:12.5px;margin:0
 @media(max-width:900px){.grid{grid-template-columns:1fr}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
 .card h2{font-size:13px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
-#cv{height:480px;background:linear-gradient(#bcd4ea,#eaf1f7);border:1px solid var(--line);border-radius:10px;overflow:hidden;touch-action:none;cursor:grab}
+#cv{height:480px;background:linear-gradient(#bcd4ea,#eaf1f7);border:1px solid var(--line);border-radius:10px;overflow:hidden;touch-action:pan-y;cursor:grab;position:relative}
+#cv.fsm{touch-action:none}
 #cv canvas{display:block;width:100%;height:100%}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) #cv{background:linear-gradient(#1b2430,#0e131a)}}:root[data-theme="dark"] #cv{background:linear-gradient(#1b2430,#0e131a)}
 .hint{font-size:11.5px;color:var(--mut);margin:4px 0 0}
@@ -56,27 +57,45 @@ h1{font-size:18px;margin:0 0 2px}.sub{color:var(--mut);font-size:12.5px;margin:0
 .tm.on{border-color:var(--on);color:var(--on)}
 .leg{font-size:12px;color:var(--mut);margin-top:10px}
 .iog{display:flex;flex-wrap:wrap;gap:4px}.io{font:11px ui-monospace,monospace;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--mut)}.io b{font-weight:600}.io.on{border-color:var(--on);color:var(--on)}.log{font:11.5px ui-monospace,monospace;color:var(--mut);max-height:140px;overflow:auto}.log div{padding:2px 0;border-bottom:1px dashed var(--line)}.ctl label{font-size:13px;display:flex;gap:5px;align-items:center}.rt.on{color:var(--on);font-weight:600}.card h2.m{margin-top:14px}
+.tb{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.tb h2{margin:0}
+.fb{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:5px 10px;font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap}
+#fsx,#pt,#lcx{display:none}
+#ec.fs{position:fixed;inset:0;z-index:100;border-radius:0;border:0;padding:0;background:var(--bg);overflow:hidden}
+#ec.fs>.tb{position:absolute;top:calc(8px + env(safe-area-inset-top,0px));left:8px;right:8px;z-index:3;margin:0;pointer-events:none}
+#ec.fs>.tb>*{pointer-events:auto}
+#ec.fs>.tb h2{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 8px}
+#ec.fs #fsx,#ec.fs #pt{display:inline-block}#ec.fs #fsb{display:none}
+#ec.fs #cv{position:absolute;inset:0;height:100%;border-radius:0;border:0}
+#ec.fs .hint{display:none}
+#ec.fs #pnl{position:absolute;left:0;right:0;bottom:0;max-height:48%;overflow:auto;background:var(--card);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));z-index:2}
+#ec.fs #pnl.hid{display:none}
+#lc.fs{position:fixed;inset:0;z-index:100;border-radius:0;border:0;padding:0;display:flex;flex-direction:column;overflow:hidden}
+#lc.fs>.tb{padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;margin:0}
+#lc.fs .lad{flex:1;max-height:none;padding:0 12px}
+#lc.fs .leg{padding:0 12px 12px;margin:6px 0 0}
+#lc.fs #lfsb{display:none}#lc.fs #lcx{display:inline-block}
+body.nos{overflow:hidden}
 </style>
 </head>
 <body>
 <h1>Elevador residencial de 5 níveis – simulação 3D com Ladder</h1>
 <p class="sub">Controlo automático selectivo · varrimento PLC em tempo real · ISPS</p>
 <div class="grid">
-  <section class="card">
-    <h2>Elevador 3D</h2>
+  <section class="card" id="ec">
+    <div class="tb"><h2>Elevador 3D</h2><div><button class="fb" id="pt">☰ Painel</button> <button class="fb" id="fsb">⛶ Só elevador</button><button class="fb" id="fsx">✕ Sair</button></div></div>
     <div id="cv"></div>
-    <p class="hint">Arraste para rodar a vista · roda do rato / pinça para aproximar.</p>
-    <div class="cp" id="cp"></div>
+    <p class="hint">Rodar: arraste na horizontal · Zoom: Ctrl+roda ou pinça · Mover: botão direito, Shift+arrastar ou dois dedos · Deslize na vertical para rolar a página · duplo toque repõe.</p>
+    <div id="pnl"><div class="cp" id="cp"></div>
     <div class="hr" id="hr"></div>
     <div class="ctl">
       <button id="obst">Simular obstrução (SEG)</button>
       <select id="spd" aria-label="Velocidade"><option value="0.5">×0,5</option><option value="1" selected>×1</option><option value="2">×2</option></select>
       <button id="rst">Reiniciar</button>
     </div>
-    <div class="ctl"><button data-v="free" class="act">Livre</button><button data-v="front">Frontal</button><button data-v="side">Lateral</button><button data-v="top">Cima</button><button data-v="cab">Dentro da cabine</button></div><div class="ctl"><label><input type="checkbox" id="fol"> Seguir cabine</label><label><input type="checkbox" id="pas" checked> Passageiro</label><button id="snd">🔇 Som</button><button id="demo">▶ Demo automática</button></div><div class="st" id="st"></div><h2 class="m">Entradas e saídas</h2><div class="iog" id="io"></div><h2 class="m">Registo de eventos</h2><div class="log" id="log"></div>
+    <div class="ctl"><button data-v="free" class="act">Livre</button><button data-v="front">Frontal</button><button data-v="side">Lateral</button><button data-v="top">Cima</button><button data-v="cab">Dentro da cabine</button></div><div class="ctl"><label><input type="checkbox" id="fol"> Seguir cabine</label><label><input type="checkbox" id="pas" checked> Passageiro</label><button id="snd">🔇 Som</button><button id="demo">▶ Demo automática</button></div><div class="st" id="st"></div><h2 class="m">Entradas e saídas</h2><div class="iog" id="io"></div><h2 class="m">Registo de eventos</h2><div class="log" id="log"></div></div>
   </section>
-  <section class="card">
-    <h2>Programa Ladder (em tempo real)</h2>
+  <section class="card" id="lc">
+    <div class="tb"><h2>Programa Ladder (em tempo real)</h2><div><button class="fb" id="lfsb">⛶ Tela cheia</button><button class="fb" id="lcx">✕ Sair</button></div></div>
     <div class="lad" id="lad"></div>
     <p class="leg">Verde = contacto fechado / bobina energizada. BTn = botão, Mn = memória de chamada, Sn = sensor de nível, Na = nível actual, Ns = nível solicitado.</p>
   </section>
@@ -225,13 +244,22 @@ const ropes=[];[-0.12,0,0.12].forEach(x=>{[-0.19,-1.05].forEach(z=>{const r=new 
 // câmara orbital simples
 let az=0.62,ev=0.2,dist=27;const tg=new THREE.Vector3(0,TOP/2,0);
 function setCam(){camera.position.set(tg.x+dist*Math.cos(ev)*Math.sin(az),tg.y+dist*Math.sin(ev),tg.z+dist*Math.cos(ev)*Math.cos(az));camera.lookAt(tg)}
-let drag=null;const cvs=R.domElement;
-cvs.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY];cvs.setPointerCapture(e.pointerId)});
-cvs.addEventListener('pointermove',e=>{if(!drag)return;az-=(e.clientX-drag[0])*0.01;ev=Math.max(-0.05,Math.min(1.35,ev+(e.clientY-drag[1])*0.01));drag=[e.clientX,e.clientY]});
-cvs.addEventListener('pointerup',()=>drag=null);
-cvs.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(9,Math.min(42,dist+e.deltaY*0.02))},{passive:false});
+let panX=0,panY=0,fsm=false;const cvs=R.domElement,ptr=new Map();let pinch=null;
+cvs.addEventListener('contextmenu',e=>e.preventDefault());
+cvs.addEventListener('pointerdown',e=>{ptr.set(e.pointerId,{x:e.clientX,y:e.clientY,t:e.pointerType});try{cvs.setPointerCapture(e.pointerId)}catch(_){}
+ if(ptr.size===2){const [p,q]=[...ptr.values()];pinch={d:Math.hypot(p.x-q.x,p.y-q.y),cx:(p.x+q.x)/2,cy:(p.y+q.y)/2}}});
+cvs.addEventListener('pointermove',e=>{const o=ptr.get(e.pointerId);if(!o)return;const dx=e.clientX-o.x,dy=e.clientY-o.y;o.x=e.clientX;o.y=e.clientY;
+ if(ptr.size>=2&&pinch){const [p,q]=[...ptr.values()];const d=Math.hypot(p.x-q.x,p.y-q.y),cx=(p.x+q.x)/2,cy=(p.y+q.y)/2;
+  dist=Math.max(5,Math.min(60,dist*pinch.d/Math.max(1,d)));const k=dist*0.0016;
+  panX-=(cx-pinch.cx)*k*Math.cos(az);panY+=(cy-pinch.cy)*k;pinch={d,cx,cy};return}
+ if(e.buttons===2||e.shiftKey){const k=dist*0.0016;panX-=dx*k*Math.cos(az);panY+=dy*k;return}
+ if(o.t==='touch'&&!fsm){az-=dx*0.01;return}
+ az-=dx*0.01;ev=Math.max(-0.05,Math.min(1.45,ev+dy*0.01))});
+const up=e=>{ptr.delete(e.pointerId);if(ptr.size<2)pinch=null};cvs.addEventListener('pointerup',up);cvs.addEventListener('pointercancel',up);
+cvs.addEventListener('wheel',e=>{if(!(e.ctrlKey||e.metaKey||fsm))return;e.preventDefault();dist=Math.max(5,Math.min(60,dist+e.deltaY*0.02))},{passive:false});
+cvs.addEventListener('dblclick',()=>{panX=0;panY=0});
 function resize(){const w=host.clientWidth,h=host.clientHeight;R.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
-addEventListener('resize',resize);resize();
+addEventListener('resize',resize);resize();if(window.ResizeObserver)new ResizeObserver(resize).observe(host);
 // ---- extras: cenário, passageiro, câmaras, som, registo, E/S
 let view='free',follow=false,paxOn=true,trips=0,simT=0,snd=false,au=null,humG=null;
 const pax=new THREE.Group();cab.add(pax);
@@ -251,8 +279,20 @@ document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{view=b.dataset.v
 $('fol').onchange=e=>follow=e.target.checked;$('pas').onchange=e=>paxOn=e.target.checked;
 function setCam(){const f=view==='cab';if(f!==(camera.fov>60)){camera.fov=f?72:40;camera.updateProjectionMatrix()}
  if(f){const y=pos*H;camera.position.set(0,y+1.5,-0.5);camera.lookAt(0,y+1.4,4);return}
- const ty=follow?pos*H+3:TOP/2;tg.y+=(ty-tg.y)*0.06;
+ const ty=(follow?pos*H+3:TOP/2)+panY;tg.y+=(ty-tg.y)*0.06;tg.x=panX;
  camera.position.set(tg.x+dist*Math.cos(ev)*Math.sin(az),tg.y+dist*Math.sin(ev),tg.z+dist*Math.cos(ev)*Math.cos(az));camera.lookAt(tg)}
+// ecrã inteiro
+const ec=$('ec'),lc=$('lc'),cvh=$('cv');
+function fsSet(card,on){card.classList.toggle('fs',on);document.body.classList.toggle('nos',on);
+ if(card===ec){fsm=on;cvh.classList.toggle('fsm',on);if(!on)$('pnl').classList.remove('hid')}
+ if(on&&card.requestFullscreen)card.requestFullscreen().catch(()=>{});
+ if(!on&&document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+ setTimeout(resize,60);setTimeout(resize,300)}
+$('fsb').onclick=()=>fsSet(ec,true);$('fsx').onclick=()=>fsSet(ec,false);
+$('lfsb').onclick=()=>fsSet(lc,true);$('lcx').onclick=()=>fsSet(lc,false);
+$('pt').onclick=()=>{$('pnl').classList.toggle('hid');setTimeout(resize,60)};
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)[ec,lc].forEach(c=>{if(c.classList.contains('fs'))fsSet(c,false)})});
+addEventListener('keydown',e=>{if(e.key==='Escape')[ec,lc].forEach(c=>{if(c.classList.contains('fs'))fsSet(c,false)})});
 // registo de eventos
 const logs=[];function log(m){const s=Math.floor(simT),t=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');logs.unshift('['+t+'] '+m);if(logs.length>8)logs.pop();$('log').innerHTML=logs.map(x=>'<div>'+x+'</div>').join('')}
 const pv={};function edge(k,f){const v=!!V[k];if(pv[k]!==undefined&&v!==pv[k])f(v);pv[k]=v}
