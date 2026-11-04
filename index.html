@@ -75,11 +75,14 @@ h1{font-size:18px;margin:0 0 2px}.sub{color:var(--mut);font-size:12.5px;margin:0
 #lc.fs .leg{padding:0 12px 12px;margin:6px 0 0}
 #lc.fs #lfsb{display:none}#lc.fs #lcx{display:inline-block}
 body.nos{overflow:hidden}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;max-width:1280px;margin:0 auto}
+body.all{padding:8px}body.all .top{display:none}body.all .grid{max-width:none}
+#allx{position:fixed;top:calc(6px + env(safe-area-inset-top,0px));right:8px;z-index:90;display:none}body.all #allx{display:block}body.nos #allx{display:none}
 </style>
 </head>
 <body>
-<h1>Elevador residencial de 5 níveis – simulação 3D com Ladder</h1>
-<p class="sub">Controlo automático selectivo · varrimento PLC em tempo real · ISPS</p>
+<div class="top"><div><h1>Elevador residencial de 5 níveis – simulação 3D com Ladder</h1>
+<p class="sub">Controlo automático selectivo · varrimento PLC em tempo real · ISPS</p></div><button class="fb" id="allfs">⛶ Tudo em tela cheia</button></div>
 <div class="grid">
   <section class="card" id="ec">
     <div class="tb"><h2>Elevador 3D</h2><div><button class="fb" id="pt">☰ Painel</button> <button class="fb" id="fsb">⛶ Só elevador</button><button class="fb" id="fsx">✕ Sair</button></div></div>
@@ -100,6 +103,7 @@ body.nos{overflow:hidden}
     <p class="leg">Verde = contacto fechado / bobina energizada. BTn = botão, Mn = memória de chamada, Sn = sensor de nível, Na = nível actual, Ns = nível solicitado.</p>
   </section>
 </div>
+<button class="fb" id="allx">✕ Sair da tela cheia</button>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 //LOGIC-START
@@ -293,6 +297,12 @@ $('lfsb').onclick=()=>fsSet(lc,true);$('lcx').onclick=()=>fsSet(lc,false);
 $('pt').onclick=()=>{$('pnl').classList.toggle('hid');setTimeout(resize,60)};
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)[ec,lc].forEach(c=>{if(c.classList.contains('fs'))fsSet(c,false)})});
 addEventListener('keydown',e=>{if(e.key==='Escape')[ec,lc].forEach(c=>{if(c.classList.contains('fs'))fsSet(c,false)})});
+function allSet(on){document.body.classList.toggle('all',on);
+ if(on&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});
+ if(!on&&document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+ setTimeout(resize,60);setTimeout(resize,300)}
+$('allfs').onclick=()=>allSet(true);$('allx').onclick=()=>allSet(false);
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&document.body.classList.contains('all'))allSet(false)});
 // registo de eventos
 const logs=[];function log(m){const s=Math.floor(simT),t=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');logs.unshift('['+t+'] '+m);if(logs.length>8)logs.pop();$('log').innerHTML=logs.map(x=>'<div>'+x+'</div>').join('')}
 const pv={};function edge(k,f){const v=!!V[k];if(pv[k]!==undefined&&v!==pv[k])f(v);pv[k]=v}
